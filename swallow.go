@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"reflect"
+	"strings"
 	"syscall"
 	"time"
 
@@ -81,7 +82,7 @@ func (s *Swallow) Display() {
 			m := e.Message
 			if reflect.TypeOf(m.From) != reflect.TypeOf("") {
 				from := m.From.(map[string]interface{})["name"]
-				message := m.Message
+				message := strings.Replace(m.Message, "\n", " ", -1)
 				fmt.Println("["+e.Name+"]", from, message)
 			}
 		}
