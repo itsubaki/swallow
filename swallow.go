@@ -56,13 +56,13 @@ func (s *Swallow) Run() {
 	tmp := make(map[int]hipchat.Room)
 	for _, r := range list.Items {
 		tmp[r.ID] = r
-		fmt.Println(r.ID, r.Name)
 	}
 
 	rooms := []hipchat.Room{}
 	for _, id := range s.config.RoomIDs {
 		if r, ok := tmp[id]; ok {
 			rooms = append(rooms, r)
+			fmt.Println(r.ID, r.Name)
 		}
 	}
 
@@ -80,17 +80,23 @@ func (s *Swallow) Display() {
 			return
 		case e := <-s.queue:
 			m := e.Message
-			if reflect.TypeOf(m.From) != reflect.TypeOf("") {
-				from := m.From.(map[string]interface{})["name"]
-				message := strings.Replace(m.Message, "\n", " ", -1)
-				fmt.Println("["+e.Name+"]", from, message)
+			if reflect.TypeOf(m.From) == reflect.TypeOf("") {
+				continue
 			}
+			tindex := strings.Index(m.Date, ".")
+			time := m.Date[:tindex]
+			name := m.From.(map[string]interface{})["name"].(string)
+			findex := strings.Index(name, "(")
+			from := name[:findex]
+			message := strings.Replace(m.Message, "\n", " ", -1)
+			fmt.Println("["+e.Name+"]", time, from, message)
 		}
 	}
 }
 
 func (s *Swallow) History(c *hipchat.Client, room hipchat.Room) {
-	t := time.NewTicker(60 * time.Second)
+	d := time.Duration(s.config.period)
+	t := time.NewTicker(d * time.Second)
 	var latest string
 	for {
 		select {

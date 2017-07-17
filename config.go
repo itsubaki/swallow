@@ -10,6 +10,7 @@ import (
 type Config struct {
 	Token   string
 	RoomIDs []int
+	period  int
 }
 
 func NewConfig() (*Config, error) {
@@ -23,6 +24,11 @@ func NewConfig() (*Config, error) {
 		return nil, errors.New("export SWALLOW_ROOM_ID=<ROOM_ID>,<ROOM_ID>,...")
 	}
 
+	period := os.Getenv("SWALLOW_PERIOD")
+	if len(period) == 0 {
+		period = "60"
+	}
+
 	ids := []int{}
 	for _, id := range strings.Split(room_id, ",") {
 		i, err := strconv.Atoi(id)
@@ -32,5 +38,10 @@ func NewConfig() (*Config, error) {
 		ids = append(ids, i)
 	}
 
-	return &Config{token, ids}, nil
+	p, err := strconv.Atoi(period)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Config{token, ids, p}, nil
 }
