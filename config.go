@@ -8,9 +8,10 @@ import (
 )
 
 type Config struct {
-	Token   string
-	RoomIDs []int
-	period  int
+	Token     string
+	RoomIDs   []int
+	Period    int
+	HighLight []string
 }
 
 func NewConfig() (*Config, error) {
@@ -29,6 +30,8 @@ func NewConfig() (*Config, error) {
 		period = "60"
 	}
 
+	highlight := os.Getenv("SWALLOW_HIGHLIGHT")
+
 	ids := []int{}
 	for _, id := range strings.Split(room_id, ",") {
 		i, err := strconv.Atoi(id)
@@ -43,5 +46,5 @@ func NewConfig() (*Config, error) {
 		return nil, err
 	}
 
-	return &Config{token, ids, p}, nil
+	return &Config{token, ids, p, strings.Split(highlight, ",")}, nil
 }

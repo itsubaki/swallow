@@ -89,37 +89,60 @@ func (s *Swallow) Display() {
 			findex := strings.Index(name, "(")
 			from := name[:findex]
 			message := strings.Replace(m.Message, "\n", " ", -1)
-			fmt.Println("["+e.Name+"]", time, from, message)
+
+			light := false
+			for _, h := range s.config.HighLight {
+				if strings.Contains(message, h) {
+					light = true
+					break
+				}
+			}
+			out := "[" + e.Name + "] " + time + " " + from + " " + message
+			if light {
+				fmt.Printf("\x1b[31m%s\x1b[0m", out)
+			} else {
+				fmt.Print(out)
+			}
+			fmt.Println()
 		}
 	}
 }
 
 func (s *Swallow) History(c *hipchat.Client, room hipchat.Room) {
-	d := time.Duration(s.config.period)
-	t := time.NewTicker(d * time.Second)
-	var latest string
+	t := time.NewTicker(time.Duration(s.config.Period) * time.Second)
+
+	items, latest := s.LatestHistory(c, room, "")
+	for _, m := range items {
+		s.queue <- Event{room.Name, m}
+	}
+
 	for {
 		select {
 		case <-s.ctx.Done():
 			return
 		case <-t.C:
-			h, _, err := c.Room.History(room.Name, &hipchat.HistoryOptions{EndDate: latest})
-			if err != nil {
-				fmt.Println("History", err)
-				return
-			}
-			items := []hipchat.Message{}
-			for _, m := range h.Items {
-				items = append(items, m)
-				if m.Date == latest {
-					items = []hipchat.Message{}
-				}
-			}
-			latest = h.Items[len(h.Items)-1].Date
-
+			items, latest = s.LatestHistory(c, room, latest)
 			for _, m := range items {
 				s.queue <- Event{room.Name, m}
 			}
 		}
 	}
+}
+
+func (s *Swallow) LatestHistory(c *hipchat.Client, room hipchat.Room, latest string) ([]hipchat.Message, string) {
+	h, _, err := c.Room.History(room.Name, &hipchat.HistoryOptions{EndDate: latest})
+	if err != nil {
+		fmt.Println("Swallow.History", err)
+		return nil, latest
+	}
+
+	items := []hipchat.Message{}
+	for _, m := range h.Items {
+		items = append(items, m)
+		if m.Date == latest {
+			items = []hipchat.Message{}
+		}
+	}
+
+	return items, h.Items[len(h.Items)-1].Date
 }
