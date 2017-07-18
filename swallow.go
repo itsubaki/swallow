@@ -85,9 +85,11 @@ func (s *Swallow) Display() {
 			}
 			tindex := strings.Index(m.Date, ".")
 			time := m.Date[:tindex]
-			name := m.From.(map[string]interface{})["name"].(string)
-			findex := strings.Index(name, "(")
-			from := name[:findex]
+			from := m.From.(map[string]interface{})["name"].(string)
+			findex := strings.Index(from, "(")
+			if findex != -1 {
+				from = from[:findex]
+			}
 			message := strings.Replace(m.Message, "\n", " ", -1)
 
 			light := false
