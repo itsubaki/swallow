@@ -1,6 +1,6 @@
 # swallow
 
- - HipChat Client for multi rooms.
+ - HipChat Client
 
 ## Install
 

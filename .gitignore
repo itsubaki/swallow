@@ -14,4 +14,4 @@
 .glide/
 *.lock
 vendor/
-setup.sh
+setenv.sh
