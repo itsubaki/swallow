@@ -112,6 +112,7 @@ func (s *Swallow) Display() {
 
 func (s *Swallow) History(c *hipchat.Client, room hipchat.Room) {
 	t := time.NewTicker(time.Duration(s.config.Period) * time.Second)
+	defer t.Stop()
 
 	items, latest := s.LatestHistory(c, room, "")
 	for _, m := range items {
